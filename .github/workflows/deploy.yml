@@ -33,7 +33,7 @@ jobs:
         run: npm prune --production --legacy-peer-deps
 
       - name: Deploy to Square Cloud
-        uses: squarecloud/action@v2
+        uses: squarecloudofc/action-upload@v2
         with:
           token: ${{ secrets.SQUARECLOUD_API_KEY }}
           app-id: ${{ secrets.SQUARECLOUD_APP_ID }}
