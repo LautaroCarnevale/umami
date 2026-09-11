@@ -54,7 +54,7 @@ jobs:
           '
           cd .next/standalone
           rm -rf node_modules
-          pnpm install --prod --no-optional
+          pnpm install --prod --no-optional --config.node-linker=hoisted
           zip -rq ../../deploy.zip .
 
       - name: Deploy to Square Cloud
