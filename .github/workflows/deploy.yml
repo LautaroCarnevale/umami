@@ -3,7 +3,8 @@ name: Build and Deploy Umami to Square Cloud
 on:
   push:
     branches:
-      - master # o main segun tu rama
+      - main
+      - master
 
 jobs:
   build-and-deploy:
@@ -13,27 +14,40 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'npm'
+          node-version: 22
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm install --include=dev --legacy-peer-deps
+        run: pnpm install --frozen-lockfile
 
       - name: Build Umami
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DATABASE_TYPE: postgresql
           APP_SECRET: ${{ secrets.APP_SECRET }}
-        run: npm run build
+          NEXT_TELEMETRY_DISABLED: 1
+        run: pnpm build
 
-      - name: Clean devDependencies
-        run: npm prune --production --legacy-peer-deps
+      - name: Prepare Standalone Deployment Package
+        run: |
+          cp -r public .next/standalone/
+          cp -r .next/static .next/standalone/.next/
+          cp -r geo .next/standalone/ 2>/dev/null || true
+          cp squarecloud.app .next/standalone/
+          cd .next/standalone
+          zip -r ../../deploy.zip .
 
       - name: Deploy to Square Cloud
         uses: squarecloudofc/action-upload@v2
         with:
           token: ${{ secrets.SQUARECLOUD_API_KEY }}
           app-id: ${{ secrets.SQUARECLOUD_APP_ID }}
+          file: deploy.zip
