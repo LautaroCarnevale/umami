@@ -43,6 +43,8 @@ jobs:
           cp -r .next/static .next/standalone/.next/
           cp -r geo .next/standalone/ 2>/dev/null || true
           cp squarecloud.app .next/standalone/
+          cp -rn .next/standalone/node_modules/.pnpm/node_modules/* .next/standalone/node_modules/ 2>/dev/null || true
+          cp -rn node_modules/@swc .next/standalone/node_modules/ 2>/dev/null || true
           node -e '
           const fs = require("fs");
           const pkg = JSON.parse(fs.readFileSync(".next/standalone/package.json", "utf8"));
@@ -53,7 +55,7 @@ jobs:
           fs.writeFileSync(".next/standalone/package.json", JSON.stringify(pkg, null, 2));
           '
           cd .next/standalone
-          zip -r ../../deploy.zip .
+          zip -r -y ../../deploy.zip .
 
       - name: Deploy to Square Cloud
         env:
