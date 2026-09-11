@@ -4,4 +4,4 @@ MEMORY=256
 VERSION=recommended
 SUBDOMAIN=umami-lautaro
 MAIN=server.js
-START=node server.js
+START=PORT=80 HOSTNAME=0.0.0.0 node server.js
