@@ -43,20 +43,19 @@ jobs:
           cp -r .next/static .next/standalone/.next/
           cp squarecloud.app .next/standalone/
           
-          # Copiar dependencias reales de ejecucion
+          # Preparar dependencias reales de ejecucion para Next.js, Prisma y Postgres
           rm -rf .next/standalone/node_modules
           mkdir -p .next/standalone/node_modules
-          cp -rL node_modules/next .next/standalone/node_modules/
-          cp -rL node_modules/react .next/standalone/node_modules/
-          cp -rL node_modules/react-dom .next/standalone/node_modules/
-          cp -rL node_modules/semver .next/standalone/node_modules/
-          cp -rL node_modules/.pnpm/node_modules/@next .next/standalone/node_modules/ 2>/dev/null || true
-          cp -rL node_modules/.pnpm/node_modules/@swc .next/standalone/node_modules/ 2>/dev/null || true
-          cp -rL node_modules/.pnpm/node_modules/styled-jsx .next/standalone/node_modules/ 2>/dev/null || true
-          cp -rL node_modules/.pnpm/node_modules/client-only .next/standalone/node_modules/ 2>/dev/null || true
+          cp -rL node_modules/next node_modules/react node_modules/react-dom node_modules/semver .next/standalone/node_modules/
           
-          # Limpiar binarios pesados de build y mapas de depuracion
-          rm -rf .next/standalone/node_modules/@next/swc* .next/standalone/node_modules/@swc/core*
+          for dir in node_modules/.pnpm/@prisma* node_modules/.pnpm/pg* node_modules/.pnpm/postgres* node_modules/.pnpm/@next+env* node_modules/.pnpm/@swc+helpers* node_modules/.pnpm/styled-jsx* node_modules/.pnpm/client-only* node_modules/.pnpm/split2* node_modules/.pnpm/xtend* node_modules/.pnpm/detect-libc*; do
+            if [ -d "$dir/node_modules" ]; then
+              cp -rL "$dir"/node_modules/* .next/standalone/node_modules/ 2>/dev/null || true
+            fi
+          done
+          
+          # Limpiar dependencias de desarrollo no usadas en ejecucion para mantener el paquete en 84MB
+          rm -rf .next/standalone/node_modules/prisma .next/standalone/node_modules/typescript .next/standalone/node_modules/effect .next/standalone/node_modules/@electric-sql .next/standalone/node_modules/elkjs .next/standalone/node_modules/@prisma/engines* .next/standalone/node_modules/@next/swc* .next/standalone/geo
           find .next/standalone -name "*.map" -delete
           
           node -e '
