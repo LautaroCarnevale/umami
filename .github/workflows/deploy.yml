@@ -43,6 +43,7 @@ jobs:
           cp -r .next/static .next/standalone/.next/
           cp -r geo .next/standalone/ 2>/dev/null || true
           cp squarecloud.app .next/standalone/
+          cp -rL node_modules/.pnpm/node_modules/* .next/standalone/node_modules/ 2>/dev/null || true
           node -e '
           const fs = require("fs");
           const pkg = JSON.parse(fs.readFileSync(".next/standalone/package.json", "utf8"));
@@ -53,8 +54,6 @@ jobs:
           fs.writeFileSync(".next/standalone/package.json", JSON.stringify(pkg, null, 2));
           '
           cd .next/standalone
-          rm -rf node_modules
-          pnpm install --prod --no-optional --config.node-linker=hoisted
           zip -rq ../../deploy.zip .
 
       - name: Deploy to Square Cloud
