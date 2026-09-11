@@ -43,6 +43,16 @@ jobs:
           cp -r .next/static .next/standalone/.next/
           cp squarecloud.app .next/standalone/
           
+          # Inyectar variables de entorno de produccion en .env del paquete
+          cat <<EOF > .next/standalone/.env
+          DATABASE_URL="${{ secrets.DATABASE_URL }}"
+          APP_SECRET="${{ secrets.APP_SECRET }}"
+          DATABASE_TYPE="postgresql"
+          NEXT_TELEMETRY_DISABLED=1
+          PORT=80
+          HOSTNAME="0.0.0.0"
+          EOF
+          
           # Preparar dependencias reales de ejecucion para Next.js, Prisma y Postgres
           rm -rf .next/standalone/node_modules
           mkdir -p .next/standalone/node_modules
@@ -54,7 +64,7 @@ jobs:
             fi
           done
           
-          # Limpiar dependencias de desarrollo no usadas en ejecucion para mantener el paquete en 84MB
+          # Limpiar dependencias de desarrollo no usadas en ejecucion
           rm -rf .next/standalone/node_modules/prisma .next/standalone/node_modules/typescript .next/standalone/node_modules/effect .next/standalone/node_modules/@electric-sql .next/standalone/node_modules/elkjs .next/standalone/node_modules/@prisma/engines* .next/standalone/node_modules/@next/swc* .next/standalone/geo
           find .next/standalone -name "*.map" -delete
           
