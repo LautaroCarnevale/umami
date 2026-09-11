@@ -41,9 +41,24 @@ jobs:
         run: |
           cp -r public .next/standalone/
           cp -r .next/static .next/standalone/.next/
-          cp -r geo .next/standalone/ 2>/dev/null || true
           cp squarecloud.app .next/standalone/
-          cp -rL node_modules/.pnpm/node_modules/* .next/standalone/node_modules/ 2>/dev/null || true
+          
+          # Copiar dependencias reales de ejecucion
+          rm -rf .next/standalone/node_modules
+          mkdir -p .next/standalone/node_modules
+          cp -rL node_modules/next .next/standalone/node_modules/
+          cp -rL node_modules/react .next/standalone/node_modules/
+          cp -rL node_modules/react-dom .next/standalone/node_modules/
+          cp -rL node_modules/semver .next/standalone/node_modules/
+          cp -rL node_modules/.pnpm/node_modules/@next .next/standalone/node_modules/ 2>/dev/null || true
+          cp -rL node_modules/.pnpm/node_modules/@swc .next/standalone/node_modules/ 2>/dev/null || true
+          cp -rL node_modules/.pnpm/node_modules/styled-jsx .next/standalone/node_modules/ 2>/dev/null || true
+          cp -rL node_modules/.pnpm/node_modules/client-only .next/standalone/node_modules/ 2>/dev/null || true
+          
+          # Limpiar binarios pesados de build y mapas de depuracion
+          rm -rf .next/standalone/node_modules/@next/swc* .next/standalone/node_modules/@swc/core*
+          find .next/standalone -name "*.map" -delete
+          
           node -e '
           const fs = require("fs");
           const pkg = JSON.parse(fs.readFileSync(".next/standalone/package.json", "utf8"));
@@ -53,14 +68,17 @@ jobs:
           };
           fs.writeFileSync(".next/standalone/package.json", JSON.stringify(pkg, null, 2));
           '
+          
           cd .next/standalone
-          zip -rq ../../deploy.zip .
+          zip -9rq ../../deploy.zip .
 
       - name: Deploy to Square Cloud
         env:
           SQUARECLOUD_API_KEY: ${{ secrets.SQUARECLOUD_API_KEY }}
           SQUARECLOUD_APP_ID: ${{ secrets.SQUARECLOUD_APP_ID }}
         run: |
+          echo "Tamaño del archivo deploy.zip:"
+          ls -lh deploy.zip
           echo "Subiendo paquete deploy.zip a Square Cloud..."
           RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST \
             -H "Authorization: ${SQUARECLOUD_API_KEY}" \
