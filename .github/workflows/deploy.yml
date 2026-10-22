@@ -56,10 +56,12 @@ jobs:
           HOSTNAME="0.0.0.0"
           EOF
           
-          # Asegurar dependencias de ejecucion completas en .next/standalone
-          cd .next/standalone
-          pnpm add --prod --ignore-workspace --no-frozen-lockfile @prisma/client @prisma/adapter-pg pg
+          # Copiar las dependencias de prisma y postgres ya instaladas
+          cp -rL node_modules/@prisma .next/standalone/node_modules/ 2>/dev/null || true
+          cp -rL node_modules/pg .next/standalone/node_modules/ 2>/dev/null || true
+          cp -rL node_modules/pg-* .next/standalone/node_modules/ 2>/dev/null || true
           
+          cd .next/standalone
           find . -name "*.map" -delete
           
           zip -9rq ../../deploy.zip .
