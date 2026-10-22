@@ -4,4 +4,4 @@ MEMORY=512
 VERSION=recommended
 SUBDOMAIN=umami-lautaro
 MAIN=server.js
-START=PORT=80 HOSTNAME=0.0.0.0 npx prisma generate && node server.js
+START=PORT=80 HOSTNAME=0.0.0.0 node server.js
