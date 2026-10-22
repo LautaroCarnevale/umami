@@ -41,6 +41,9 @@ jobs:
         run: |
           cp -r public .next/standalone/
           cp -r .next/static .next/standalone/.next/
+          cp -r prisma .next/standalone/
+          cp -r generated .next/standalone/
+          cp prisma.config.ts .next/standalone/ 2>/dev/null || true
           cp squarecloud.app .next/standalone/
           
           # Inyectar variables de entorno de produccion en .env del paquete
@@ -53,33 +56,14 @@ jobs:
           HOSTNAME="0.0.0.0"
           EOF
           
-          # Preparar dependencias reales de ejecucion para Next.js, Prisma y Postgres
-          rm -rf .next/standalone/node_modules
-          mkdir -p .next/standalone/node_modules
-          cp -rL node_modules/next node_modules/react node_modules/react-dom node_modules/semver .next/standalone/node_modules/
-          
-          for dir in node_modules/.pnpm/@prisma* node_modules/.pnpm/pg* node_modules/.pnpm/postgres* node_modules/.pnpm/@next+env* node_modules/.pnpm/@swc+helpers* node_modules/.pnpm/styled-jsx* node_modules/.pnpm/client-only* node_modules/.pnpm/split2* node_modules/.pnpm/xtend* node_modules/.pnpm/detect-libc*; do
-            if [ -d "$dir/node_modules" ]; then
-              cp -rL "$dir"/node_modules/* .next/standalone/node_modules/ 2>/dev/null || true
-            fi
-          done
-          
-          # Limpiar dependencias de desarrollo no usadas en ejecucion
-          rm -rf .next/standalone/node_modules/prisma .next/standalone/node_modules/typescript .next/standalone/node_modules/effect .next/standalone/node_modules/@electric-sql .next/standalone/node_modules/elkjs .next/standalone/node_modules/@prisma/engines* .next/standalone/node_modules/@next/swc* .next/standalone/geo
-          find .next/standalone -name "*.map" -delete
-          
-          node -e '
-          const fs = require("fs");
-          const pkg = JSON.parse(fs.readFileSync(".next/standalone/package.json", "utf8"));
-          pkg.scripts = {
-            build: "echo already_built",
-            start: "PORT=80 HOSTNAME=0.0.0.0 node server.js"
-          };
-          fs.writeFileSync(".next/standalone/package.json", JSON.stringify(pkg, null, 2));
-          '
-          
+          # Asegurar dependencias de ejecucion completas en .next/standalone
           cd .next/standalone
+          pnpm add --prod @prisma/client @prisma/adapter-pg pg
+          
+          find . -name "*.map" -delete
+          
           zip -9rq ../../deploy.zip .
+          cd ../..
 
       - name: Deploy to Square Cloud
         env:
