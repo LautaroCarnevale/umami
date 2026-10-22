@@ -58,7 +58,7 @@ jobs:
           
           # Asegurar dependencias de ejecucion completas en .next/standalone
           cd .next/standalone
-          pnpm add --prod @prisma/client @prisma/adapter-pg pg
+          pnpm add --prod --ignore-workspace --no-frozen-lockfile @prisma/client @prisma/adapter-pg pg
           
           find . -name "*.map" -delete
           
