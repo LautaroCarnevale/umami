@@ -56,13 +56,20 @@ jobs:
           HOSTNAME="0.0.0.0"
           EOF
           
-          # Copiar las dependencias de prisma y postgres ya instaladas
-          cp -rL node_modules/@prisma .next/standalone/node_modules/ 2>/dev/null || true
-          cp -rL node_modules/pg .next/standalone/node_modules/ 2>/dev/null || true
-          cp -rL node_modules/pg-* .next/standalone/node_modules/ 2>/dev/null || true
-          
           cd .next/standalone
+          
+          # Podar paquetes pesados que no se usan en runtime
+          rm -rf geo
+          rm -rf node_modules/.pnpm/@next+swc* node_modules/@next/swc*
+          rm -rf node_modules/.pnpm/typescript* node_modules/typescript
+          rm -rf node_modules/.pnpm/@prisma+engines* node_modules/@prisma/engines
+          rm -rf node_modules/.pnpm/prisma@* node_modules/prisma
+          rm -rf node_modules/.pnpm/@electric-sql* node_modules/.pnpm/effect* node_modules/.pnpm/elkjs*
           find . -name "*.map" -delete
+          
+          # Diagnostico de tamaño (siguiendo symlinks, como lo hace zip)
+          echo "Directorios mas pesados:"
+          du -shL node_modules/* .next/* ./* 2>/dev/null | sort -rh | head -15
           
           zip -9rq ../../deploy.zip .
           cd ../..
